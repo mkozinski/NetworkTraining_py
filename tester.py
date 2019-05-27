@@ -6,9 +6,10 @@ import time
 
 class tester:
 
-  def __init__(self, test_loader, logger):
+  def __init__(self, test_loader, logger, preproc):
     self.dataLoader=test_loader
     self.logger=logger
+    self.preproc=preproc
 
   def test(self, net):
     net.eval()
@@ -20,8 +21,7 @@ class tester:
         try:
           data=next(self.di)
           img, lbl = data
-          img, lbl = img.cuda(), lbl.long().cuda()
-          img, lbl = img, lbl
+          img, lbl = self.preproc(img, lbl)
           out= net.forward(img)
           self.logger.add(0,out,lbl)
           local_iter+=1

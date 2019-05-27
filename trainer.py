@@ -8,12 +8,13 @@ import time
 
 class trainer:
 
-  def __init__(self, net, train_loader, optimizer, loss_function, logger, tester, test_every,lr_scheduler=None,
-               lrStepPer='batch'):
+  def __init__(self, net, train_loader, optimizer, loss_function, logger, 
+               tester, test_every,lr_scheduler=None, lrStepPer='batch', 
+               preprocImgLbl=None):
     self.net=net
     self.dataLoader=train_loader
     self.optimizer=optimizer
-    self.crit=loss_function.cuda()
+    self.crit=loss_function
     self.logger=logger
     self.di=iter(self.dataLoader)
     self.epoch=0
@@ -23,6 +24,10 @@ class trainer:
     self.tester=tester
     self.lr_scheduler=lr_scheduler
     self.lrStepPer=lrStepPer # 'batch' or 'epoch'
+    if preprocImgLbl==None:
+      self.preproc=lambda img,lbl: img,lbl
+    else:
+      self.preproc=preprocImgLbl
 
   def train(self, numiter):
     self.net.train()
@@ -31,13 +36,14 @@ class trainer:
     while local_iter<numiter:
       try:
         img, lbl=next(self.di)
+        img,lbl=self.preproc(img,lbl)
         self.optimizer.zero_grad()
-        img = Variable(img.cuda()) 
+        img = Variable(img)
         out= self.net.forward(img)
-        loss = self.crit(out, lbl.cuda())
+        loss = self.crit(out, lbl)
         loss.backward()
         self.optimizer.step()
-        self.logger.add(loss.data.cpu().numpy(),out,lbl)
+        self.logger.add(loss.item(),out,lbl)
         local_iter+=1
         self.tot_iter+=1
         if self.lr_scheduler and self.lrStepPer=='batch':
