@@ -7,6 +7,11 @@ import time
 class tester:
 
   def __init__(self, test_loader, logger, preproc):
+  # test_loader
+  # logger
+  # preproc  -  a function for batch pre-processing
+  #             takes a pair img,lbl, returns a pair img,lbl
+  #             I use it mostly to copy the data to gpu
     self.dataLoader=test_loader
     self.logger=logger
     self.preproc=preproc

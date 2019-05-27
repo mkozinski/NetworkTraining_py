@@ -2,33 +2,16 @@ import numpy as np
 import NetworkTraining_py.cropRoutines as cropRoutines
 import torch
 
-def targetCoords(sourceCoords,validCoords):
-  cc=sourceCoords
-  vc=validCoords
-  tc=[]
-  for i in range(len(cc)):
-    tc.append(slice(cc[i].start+vc[i].start,cc[i].start+vc[i].stop))
-  return tc
-
-def processChunk(inChunk,cropSize,marginSize,startDim,net,outChannels=None):
-  nc=cropRoutines.noCrops(inChunk.shape,cropSize,marginSize,startDim)
-  size=np.array(inChunk.shape)
-  if outChannels:
-    size[1]=outChannels
-  outChunk=np.zeros(tuple(size))
-  for i in range(nc):
-    cc,vc=cropRoutines.cropCoords(i,cropSize,marginSize,inChunk.shape,startDim)
-    tc=targetCoords(cc,vc)
-    crop=inChunk[tuple(cc)]
-    o=net.forward(torch.from_numpy(crop).cuda())
-    tc[1]=slice(0,size[1])
-    vc[1]=slice(0,size[1])
-    outChunk[tuple(tc)]=o.cpu().data.numpy()[tuple(vc)]
-  return outChunk
-
-def processChunk_v2(inChunk,cropSize,marginSize,startDim,net,outDims=None):
-  # outDims specify the size of the output along k first dimensions along which
-  # there is no cropping; it is a tuple
+def processBigInput(inChunk,cropSize,marginSize,startDim,net,outDims=None):
+  # process a big input image or volume, in crops (crop-by-crop)
+  # inChunk - the input volume
+  # cropSize - the size of the crop to be processed at a time, a tuple
+  # marginSize-a tuple, margin size along eqch dimension
+  # startDim - int, the index of the first dimension to crop; 
+  #            the input is not cropped along dimensions lower than startDim
+  # outDims-a tuple; the size of the output along k first dimensions along which
+  # there is no cropping; (network output can have different number of channels
+  # than the input)
   nc=cropRoutines.noCrops(inChunk.shape,cropSize,marginSize,startDim)
   size=inChunk.shape
   if outDims:
@@ -39,8 +22,7 @@ def processChunk_v2(inChunk,cropSize,marginSize,startDim,net,outDims=None):
       size.append(inChunk.shape[k])
   outChunk=np.zeros(tuple(size))
   for i in range(nc):
-    cc,vc=cropRoutines.cropCoords(i,cropSize,marginSize,inChunk.shape,startDim)
-    tc=targetCoords(cc,vc)
+    cc,vc,tc=cropRoutines.cropCoords(i,cropSize,marginSize,inChunk.shape,startDim)
     crop=inChunk[tuple(cc)]
     o=net.forward(torch.from_numpy(crop).cuda())
     if outDims:

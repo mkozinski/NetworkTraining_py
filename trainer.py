@@ -11,6 +11,18 @@ class trainer:
   def __init__(self, net, train_loader, optimizer, loss_function, logger, 
                tester, test_every,lr_scheduler=None, lrStepPer='batch', 
                preprocImgLbl=None):
+    # net
+    # train_loader
+    # optimizer
+    # loss_function
+    # logger
+    # tester
+    # test_every - a test is run every "test_every" epochs
+    # lr_scheduler - 
+    # lrStepPer - 'batch' or 'epoch' - make a learning rate update
+    #             according to number of batches or epochs
+    # preprocImgLbl - a function for batch preprocessing
+    #                 I use it to copy the batches to gpu
     self.net=net
     self.dataLoader=train_loader
     self.optimizer=optimizer

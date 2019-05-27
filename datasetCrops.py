@@ -5,13 +5,16 @@ import NetworkTraining_py.cropRoutines as cropRoutines
 import bisect
 
 class TestDataset(Dataset):
+# this dataset enables running a test on a large volume/image
+# by cutting it into overlapping crops/tiles
+# but only retaining ground truths for the non-overlapping regions
 
   def __init__(self, img, lbl, cropSz, margSz, augment, ignoreInd=255):
     self.cropSz=cropSz
     self.margSz=margSz
     self.img=img
     self.lbl=lbl
-    self.no_crops=[0] # no_crops[i] = tot no crops in img[k] for all k<i
+    self.no_crops=[0] # no_crops[i] = sum no crops in img[k] for all k<i
     self.ignoreInd=ignoreInd
     self.augment=augment
     for l in self.lbl:
@@ -28,7 +31,7 @@ class TestDataset(Dataset):
     lbl=self.lbl[ind]
     img=self.img[ind]
     cropInd=idx-self.no_crops[ind] # index of crop of img[ind]
-    cc,vc=cropRoutines.cropCoords(cropInd,self.cropSz,self.margSz,lbl.shape,0)
+    cc,vc,_=cropRoutines.cropCoords(cropInd,self.cropSz,self.margSz,lbl.shape,0)
     cimg=img[tuple(cc)].copy()
     clbl=lbl[tuple(cc)].copy()
     # use vc to inpaint margins to ignore in lbl!
