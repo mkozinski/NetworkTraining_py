@@ -10,9 +10,11 @@ def crop(img,inds,fill=0):
     # when inds is shorter than img.shape, the initial k missing dimensions
     # are taken to be img.shape[n] where 0<=n<k
     # fill is the value inpainted in the regions outside of the image frame
+
     outsize=[]
     dstinds=[]
     srcinds=[]
+
     for k in range(len(inds)):
         i=k+1 # index from the back
         ind=inds[-i]
@@ -32,7 +34,7 @@ def crop(img,inds,fill=0):
     outsize=list(img.shape)[0:missing_dims]+outsize
 
     crop=np.full(tuple(outsize),fill,img.dtype)
-    print(dstinds,srcinds)
     crop[tuple(dstinds)]=img[tuple(srcinds)]
+
     return crop, dstinds
 
