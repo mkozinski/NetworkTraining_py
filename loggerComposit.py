@@ -2,12 +2,12 @@ class LoggerComposit:
     def __init__(self, loggers):
         self.loggers=loggers
 
-    def add(self,l,output,target):
+    def add(self,img,output,target,l,net=None,optim=None):
         for lgr in self.loggers:
-            lgr.add(l,output,target)
+            lgr.add(img,output,target,l,net,optim)
 
-    def logEpoch(self,net):
-        lastLoss=self.loggers[0].logEpoch(net)
+    def logEpoch(self,net=None,optim=None,scheduler=None):
+        lastLoss=self.loggers[0].logEpoch(net,optim,scheduler)
         for k in range(1,len(self.loggers)):
-            self.loggers[k].logEpoch(net)
+            self.loggers[k].logEpoch(net,optim,scheduler)
         return lastLoss
