@@ -4,7 +4,7 @@ import torch
 class LoggerBasic:
     def __init__(self, log_dir, name, saveNetEvery=500, saveAndKeep=False):
         self.log_dir=log_dir
-        self.log_file=os.path.join(self.log_dir,"log"+name+".txt")
+        self.log_file=os.path.join(self.log_dir,"log_"+name+".txt")
 
         text_file = open(self.log_file, "w")
         text_file.close()

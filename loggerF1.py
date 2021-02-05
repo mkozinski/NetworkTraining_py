@@ -11,13 +11,14 @@ def reverse(t):
 
 class LoggerF1:
 
-  def __init__(self,logdir,fname,transform,nBins=10000,saveBest=False):
+  def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
+               nBins=10000,saveBest=False):
     self.log_dir=logdir
     self.name=fname
-    self.log_file=os.path.join(self.log_dir,"logF1"+self.name+".txt")
+    self.log_file=os.path.join(self.log_dir,"logF1_"+self.name+".txt")
     text_file = open(self.log_file, "w")
     text_file.close()
-    self.preproc=transform
+    self.preproc=preproc
     self.nBins=nBins
     self.hPos=torch.zeros(self.nBins)
     self.hNeg=torch.zeros(self.nBins)
