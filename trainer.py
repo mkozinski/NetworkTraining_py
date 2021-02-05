@@ -55,7 +55,8 @@ class trainer:
         loss = self.crit(out, lbl)
         loss.backward()
         self.optimizer.step()
-        self.logger.add(loss.item(),out,lbl)
+        self.logger.add(img,out,lbl,loss.item(),
+                        net=self.net,optim=self.optimizer)
         local_iter+=1
         self.tot_iter+=1
         if self.lr_scheduler and self.lrStepPer=='batch':
@@ -66,7 +67,7 @@ class trainer:
           t0=t1
           self.prev_iter=self.tot_iter
       except StopIteration:
-        lastLoss=self.logger.logEpoch(self.net)
+        lastLoss=self.logger.logEpoch(net=self.net,optim=self.optimizer,scheduler=self.lr_scheduler)
         self.epoch+=1
         self.di=iter(self.dataLoader)
         if self.test_every and self.epoch%self.test_every==0:
