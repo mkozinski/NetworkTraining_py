@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 import NetworkTraining_py.cropRoutines as cropRoutines
+from NetworkTraining_py.crop import crop
 import bisect
 
 class TestDataset(Dataset):
@@ -9,8 +10,7 @@ class TestDataset(Dataset):
 # by cutting it into overlapping crops/tiles
 # but only retaining ground truths for the non-overlapping regions
 
-  def __init__(self, img, lbl, cropSz, margSz, augment, ignoreInd=255, 
-               imgHasChannelDim=False):
+  def __init__(self, img, lbl, cropSz, margSz, augment, ignoreInd=255 ):
     self.cropSz=cropSz
     self.margSz=margSz
     self.img=img
@@ -18,7 +18,6 @@ class TestDataset(Dataset):
     self.no_crops=[0] # no_crops[i] = sum no crops in img[k] for all k<i
     self.ignoreInd=ignoreInd
     self.augment=augment
-    self.imgHasChannelDim=imgHasChannelDim
     for l in self.lbl:
       tot_no_crops=cropRoutines.noCrops(l.shape,self.cropSz,self.margSz,0)+\
                    self.no_crops[-1]
@@ -34,12 +33,9 @@ class TestDataset(Dataset):
     img=self.img[ind]
     cropInd=idx-self.no_crops[ind] # index of crop of img[ind]
     cc,vc,_=cropRoutines.cropCoords(cropInd,self.cropSz,self.margSz,lbl.shape,0)
-    if self.imgHasChannelDim:
-      cimg=img[tuple([slice(0,img.shape[0])]+cc)].copy()
-    else:
-      cimg=img[tuple(cc)].copy()
+    cimg,_=crop(img,tuple(cc))
     clbl=lbl[tuple(cc)].copy()
-    # use vc to inpaint margins to ignore in lbl!
+    # use vc to inpaint margins to ignore in lbl
     idx=[]
     for i in range(len(vc)):
       # left margin
