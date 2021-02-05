@@ -24,14 +24,14 @@ class LoggerF1:
     self.bestF1=0
     self.saveBest=saveBest
 
-  def add(self,l,output,target):
-    o,t=self.preproc(output.cpu().data,target.cpu().data)
+  def add(self,img,output,target,l,net=None,optim=None):
+    o,t=self.preproc(output,target)
     pos=o[t==1]
     neg=o[t==0]
     self.hPos+=pos.histc(self.nBins,0,1)
     self.hNeg+=neg.histc(self.nBins,0,1)
 
-  def logEpoch(self,net):
+  def logEpoch(self,net=None,optim=None,scheduler=None):
     precision,recall=PRFromHistograms(self.hPos,self.hNeg)
     f1s=F1FromPR(precision,recall)
     f=f1s.max()
@@ -40,10 +40,14 @@ class LoggerF1:
     text_file.close()
     if self.saveBest and f > self.bestF1:
       self.bestF1=f
-      torch.save({'state_dict': net.state_dict()},
-                  os.path.join(self.log_dir, 
-                  'net_'+self.name+'_bestF1.pth'))
-
+      if net:
+        torch.save({'state_dict': net.state_dict()},
+                    os.path.join(self.log_dir, 
+                    'net_'+self.name+'_bestF1.pth'))
+      if optim:
+        torch.save({'state_dict': optim.state_dict()},
+                    os.path.join(self.log_dir, 
+                    'optim_'+self.name+'_bestF1.pth'))
 
     self.hPos.zero_()
     self.hNeg.zero_()
