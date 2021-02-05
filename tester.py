@@ -28,14 +28,14 @@ class tester:
           img, lbl = data
           img, lbl = self.preproc(img, lbl)
           out= net.forward(img)
-          self.logger.add(0,out,lbl)
+          self.logger.add(img,out,lbl,0,net=net)
           local_iter+=1
           t1=time.time()
           if t1-t0>3:
             sys.stdout.write('\rTest iter: %8d' % (local_iter))
             t0=t1
         except StopIteration:
-          self.logger.logEpoch(net)
+          self.logger.logEpoch(net=net)
           break
     net.train()
   
