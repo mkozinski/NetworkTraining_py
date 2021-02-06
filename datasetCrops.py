@@ -6,9 +6,10 @@ from NetworkTraining_py.crop import crop
 import bisect
 
 class TestDataset(Dataset):
-# this dataset enables running a test on a large volume/image
-# by cutting it into overlapping crops/tiles
-# but only retaining ground truths for the non-overlapping regions
+# this dataset enables testing a segmentation network on a large volume/image
+# by cutting the volume or image into overlapping crops/tiles
+# but only retaining non-overlapping ground truth chunks 
+# so that each pixel/voxel is evaluated once
 
   def __init__(self, img, lbl, cropSz, margSz, augment, ignoreInd=255 ):
     self.cropSz=cropSz
@@ -28,7 +29,7 @@ class TestDataset(Dataset):
 
   def getCrop(self,idx):
     # idx is a crop index, not an image index
-    ind=bisect.bisect_right(self.no_crops,idx)-1
+    ind=bisect.bisect_right(self.no_crops,idx)-1  # image index
     lbl=self.lbl[ind]
     img=self.img[ind]
     cropInd=idx-self.no_crops[ind] # index of crop of img[ind]

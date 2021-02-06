@@ -5,7 +5,7 @@ class LoggerGeneric:
     def __init__(self, log_dir, name, compute_logged_val, 
                  saveMin=False, saveMax=False):
         self.log_dir=log_dir
-        self.log_file=os.path.join(self.log_dir,"log"+name+".txt")
+        self.log_file=os.path.join(self.log_dir,"log_"+name+".txt")
         self.name=name
 
         self.compute_logged_val=compute_logged_val
