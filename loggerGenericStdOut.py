@@ -1,7 +1,3 @@
-
-import os
-import torch
-
 class LoggerGenericStdOut:
     def __init__(self, compute_logged_val):
         self.val=0

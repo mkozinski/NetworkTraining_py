@@ -1,6 +1,4 @@
-import torch
 from torch.utils.data import Dataset
-import numpy as np
 import NetworkTraining_py.cropRoutines as cropRoutines
 from NetworkTraining_py.crop import crop
 import bisect
