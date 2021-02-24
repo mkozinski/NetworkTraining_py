@@ -2,11 +2,10 @@ import os
 import torch
 import numpy as np
 import sklearn.metrics
-from apex import amp
 
 class LoggerIoU:
     def __init__(self, log_dir, name, nClasses, ignoredIdx, saveBest=False, 
-                 preproc=lambda o,t: (o,t), apex_opt_level=None):
+                 preproc=lambda o,t: (o,t)):
         self.log_dir=log_dir
         self.name=name
         self.log_file=os.path.join(self.log_dir,"logIou_"+self.name+".txt")
@@ -19,7 +18,6 @@ class LoggerIoU:
         self.saveBest=saveBest
         self.bestIoU=0
         self.preproc=preproc
-        self.apex_opt_level = apex_opt_level
 
     def add(self,img,output,target,loss,net=None,optim=None):
         output,target=self.preproc(output,target)
@@ -34,7 +32,8 @@ class LoggerIoU:
         oc_valid=oc[tc!=self.ignoredIdx]
         tc_valid=tc[tc!=self.ignoredIdx]
 
-        self.confMat += sklearn.metrics.confusion_matrix(tc_valid, oc_valid, labels=np.array(range(self.nClasses)))
+        self.confMat+=sklearn.metrics.confusion_matrix
+            (tc_valid,oc_valid,labels=np.array(range(self.nClasses)))
 
     def logEpoch(self,net=None,optim=None,scheduler=None):
         sums1=np.sum(self.confMat,axis=0)
@@ -52,16 +51,15 @@ class LoggerIoU:
         self.confMat.fill(0)
         if mean_iou > self.bestIoU:
             self.bestIoU=mean_iou
-            filename_base = self.name + '_bestIoU.pth'
             if self.saveBest:
                 torch.save({'state_dict': net.state_dict()},
-                           os.path.join(self.log_dir, 'net_' + filename_base))
+                            os.path.join(self.log_dir, 
+                            'net_'+self.name+'_bestIoU.pth'))
                 if net:
                     torch.save({'state_dict': net.state_dict()},
-                               os.path.join(self.log_dir, 'net_' + filename_base))
+                                os.path.join(self.log_dir, 
+                                'net_'+self.name+'_bestIoU.pth'))
                 if optim:
                     torch.save({'state_dict': optim.state_dict()},
-                               os.path.join(self.log_dir, 'optim_' + filename_base))
-                if self.apex_opt_level is not None:
-                    torch.save({'state_dict': amp.state_dict(), 'opt_level': self.apex_opt_level},
-                               os.path.join(self.log_dir, 'amp_' + filename_base))
+                                os.path.join(self.log_dir, 
+                                'optim_'+self.name+'_bestIoU.pth'))

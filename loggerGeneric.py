@@ -1,10 +1,9 @@
 import os
 import torch
-from apex import amp
 
 class LoggerGeneric:
     def __init__(self, log_dir, name, compute_logged_val, 
-                 saveMin=False, saveMax=False, apex_opt_level=None):
+                 saveMin=False, saveMax=False):
         self.log_dir=log_dir
         self.log_file=os.path.join(self.log_dir,"log_"+name+".txt")
         self.name=name
@@ -20,7 +19,6 @@ class LoggerGeneric:
         self.max=float("-inf")
         self.saveMin=saveMin
         self.saveMax=saveMax
-        self.apex_opt_level = apex_opt_level
 
     def add(self,img,output,target,l,net=None,optim=None):
         self.val+=self.compute_logged_val(img,output,target,l,net,optim)
@@ -37,32 +35,27 @@ class LoggerGeneric:
         self.epoch+=1
         if self.saveMin and lastVal < self.min:
             self.min=lastVal
-            filename_base = self.name + '_min.pth'
-
             if net:
-                torch.save({'state_dict':net.state_dict()},
-                           os.path.join(self.log_dir, 'net_' + filename_base))
+              torch.save({'state_dict':net.state_dict()},
+                         os.path.join(self.log_dir,
+                         'net_'  +self.name+'_min.pth'))
             if optim:
-                torch.save({'state_dict':optim.state_dict()},
-                           os.path.join(self.log_dir, 'optim_' + filename_base))
+              torch.save({'state_dict':optim.state_dict()},
+                         os.path.join(self.log_dir,
+                         'optim_'+self.name+'_min.pth'))
             if scheduler:
-                torch.save({'state_dict':optim.state_dict()},
-                           os.path.join(self.log_dir, 'scheduler_' + filename_base))
-            if self.apex_opt_level is not None:
-                torch.save({'state_dict': amp.state_dict(), 'opt_level': self.apex_opt_level},
-                           os.path.join(self.log_dir, 'amp_' + filename_base))
-
+              torch.save({'state_dict':optim.state_dict()},
+                         os.path.join(self.log_dir,
+                         'scheduler_'+self.name+'_min.pth'))
         if self.saveMax and lastVal > self.max:
             self.max=lastVal
-            filename_base = self.name + '_max.pth'
             if net:
-                torch.save({'state_dict': net.state_dict()},
-                           os.path.join(self.log_dir, 'net_' + filename_base))
+              torch.save({'state_dict':net.state_dict()},
+                         os.path.join(self.log_dir,
+                         'net_'  +self.name+'_max.pth'))
             if optim:
-                torch.save({'state_dict': optim.state_dict()},
-                           os.path.join(self.log_dir, 'optim_' + filename_base))
-            if self.apex_opt_level is not None:
-                torch.save({'state_dict': amp.state_dict(), 'opt_level': self.apex_opt_level},
-                           os.path.join(self.log_dir, 'amp_' + filename_base))
+              torch.save({'state_dict':optim.state_dict()},
+                         os.path.join(self.log_dir,
+                         'optim_'+self.name+'_max.pth'))
         
         return lastVal
