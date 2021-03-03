@@ -6,11 +6,13 @@ import numpy as np
 import sys
 import time
 
+from apex import amp
+
 class trainer:
 
   def __init__(self, net, train_loader, optimizer, loss_function, logger, 
                tester, test_every,lr_scheduler=None, lrStepPer='batch', 
-               preprocImgLbl=None):
+               preprocImgLbl=None, apex_opt_level=None):
     # net
     # train_loader
     # optimizer
@@ -40,6 +42,10 @@ class trainer:
       self.preproc=lambda img,lbl: img,lbl
     else:
       self.preproc=preprocImgLbl
+    self.apex_opt_level=apex_opt_level
+    if self.apex_opt_level is not None:
+       self.net,self.optimizer=amp.initialize(self.net,self.optimizer,
+                                              opt_level=self.apex_opt_level)
 
   def train(self, numiter):
     self.net.train()
@@ -50,10 +56,13 @@ class trainer:
         img, lbl=next(self.di)
         img,lbl=self.preproc(img,lbl)
         self.optimizer.zero_grad()
-        img = Variable(img)
         out= self.net.forward(img)
         loss = self.crit(out, lbl)
-        loss.backward()
+        if self.apex_opt_level is not None:
+            with amp.scale_loss(loss,self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
         self.optimizer.step()
         self.logger.add(img,out,lbl,loss.item(),
                         net=self.net,optim=self.optimizer)
