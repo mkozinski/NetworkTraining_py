@@ -13,7 +13,7 @@ def reverse(t):
 
 class LoggerF1:
     def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
-                 nBins=10000,saveBest=False, apex_opt_level=False):
+                 nBins=10000,saveBest=False, apex_opt_level=None):
         self.log_dir=logdir
         self.name=fname
         self.log_file=os.path.join(self.log_dir,"logF1_"+self.name+".txt")

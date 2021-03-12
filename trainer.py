@@ -47,7 +47,6 @@ class Trainer:
                 img, lbl = next(self.di)
                 img, lbl = self.preproc(img,lbl)
                 self.optimizer.zero_grad()
-                img = Variable(img)
 
                 # Forward
                 out = self.net(img)
