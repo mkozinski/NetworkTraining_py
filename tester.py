@@ -4,7 +4,7 @@ import time
 
 
 class Tester:
-    def __init__(self, test_loader, logger, preproc):
+    def __init__(self, test_loader, logger, preproc=None, device=None):
         # test_loader
         # logger
         # preproc  -  a function for batch pre-processing
@@ -13,6 +13,7 @@ class Tester:
         self.dataLoader=test_loader
         self.logger=logger
         self.preproc=preproc
+        self.device = device
 
     def test(self, net):
         net.eval()
@@ -22,10 +23,11 @@ class Tester:
             t0=time.time()
             while True:
                 try:
-                    data=next(self.di)
-                    img, lbl = data
-                    img, lbl = self.preproc(img, lbl)
-                    out= net(img)
+                    img, lbl = next(self.di)
+                    img.to(self.device)
+                    lbl.to(self.device)
+
+                    out = net(img)
                     self.logger.add(img,out,lbl,0,net=net)
                     local_iter+=1
                     t1=time.time()

@@ -6,7 +6,7 @@ from apex import amp
 class Trainer:
     def __init__(self, net, train_loader, optimizer, loss_function, logger,
                  tester, test_every,lr_scheduler=None, lrStepPer='batch',
-                 preprocImgLbl=None, apex_opt_level=None):
+                 preprocImgLbl=None, apex_opt_level=None, device=None):
         # net
         # train_loader
         # optimizer
@@ -37,6 +37,7 @@ class Trainer:
         else:
             self.preproc=preprocImgLbl
         self.apex_opt_level = apex_opt_level
+        self.device = device
 
     def train(self, numiter):
         self.net.train()
@@ -45,7 +46,8 @@ class Trainer:
         while local_iter < numiter:
             try:
                 img, lbl = next(self.di)
-                img, lbl = self.preproc(img,lbl)
+                img.to(self.device)
+                lbl.to(self.device)
                 self.optimizer.zero_grad()
 
                 # Forward
