@@ -1,6 +1,7 @@
 import sys
 import time
 from apex import amp
+import os
 
 
 class Trainer:
@@ -48,13 +49,16 @@ class Trainer:
         while local_iter < numiter:
             try:
                 img, lbl = next(self.di)
-                img.to(self.device)
-                lbl.to(self.device)
+                img = img.to(self.device)
+                lbl = lbl.to(self.device)
                 self.optimizer.zero_grad()
 
                 # Forward
                 out = self.net(img)
+                print('out:', out)
+                print('lbl:', lbl)
                 loss = self.crit(out, lbl)
+                os.system('nvidia-smi')
 
                 # Backward
                 if self.apex_opt_level is not None:
