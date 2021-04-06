@@ -32,10 +32,12 @@ class Trainer:
         self.tester=tester
         self.lr_scheduler=lr_scheduler
         self.lrStepPer=lrStepPer  # 'batch' or 'epoch'
-        if preprocImgLbl==None:
-            self.preproc=lambda img,lbl: img,lbl
+
+        if preprocImgLbl is None:
+            self.preprocess = lambda img_lbl_pair: img_lbl_pair
         else:
-            self.preproc=preprocImgLbl
+            self.preprocess = preprocImgLbl
+
         self.apex_opt_level = apex_opt_level
         self.device = device
 
