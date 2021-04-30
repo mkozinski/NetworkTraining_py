@@ -48,8 +48,8 @@ class Trainer:
         while local_iter < numiter:
             try:
                 img, lbl = next(self.di)
-                img.to(self.device)
-                lbl.to(self.device)
+                img.to(self.device, non_blocking=True)
+                lbl.to(self.device, non_blocking=True)
                 self.optimizer.zero_grad()
 
                 # Forward
