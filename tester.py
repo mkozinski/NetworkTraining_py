@@ -24,8 +24,8 @@ class Tester:
             while True:
                 try:
                     img, lbl = next(self.di)
-                    img.to(self.device, non_blocking=True)
-                    lbl.to(self.device, non_blocking=True)
+                    img = img.to(self.device, non_blocking=True)
+                    lbl = lbl[:, 0].to(self.device, non_blocking=True)
 
                     out = net(img)
                     self.logger.add(img,out,lbl,0,net=net)
