@@ -48,15 +48,12 @@ class Trainer:
         t0=time.time()
         while local_iter < numiter:
             try:
-                img, lbl = next(self.di)
-                img = img.to(self.device, non_blocking=True)
-                lbl = lbl[:, 0].to(self.device, non_blocking=True)
                 img, lbl = self.preprocess(next(self.di))
                 self.optimizer.zero_grad()
 
                 # Forward
                 out = self.net(img)
-                loss, loss_components = torch.tensor(0), []
+                loss, loss_components = torch.tensor(0, dtype=torch.float, device=img.device), []
                 for criterion, output, label in zip(self.crit, out, lbl):
                     loss_component = criterion(output, label)
                     loss_components.append(loss_component.item())
