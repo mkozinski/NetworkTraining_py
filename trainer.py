@@ -51,6 +51,7 @@ class Trainer:
                 img, lbl = next(self.di)
                 img = img.to(self.device, non_blocking=True)
                 lbl = lbl[:, 0].to(self.device, non_blocking=True)
+                img, lbl = self.preprocess(next(self.di))
                 self.optimizer.zero_grad()
 
                 # Forward
