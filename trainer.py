@@ -1,7 +1,7 @@
 import sys
 import time
 from apex import amp
-import os
+import torch
 
 
 class Trainer:
@@ -55,7 +55,11 @@ class Trainer:
 
                 # Forward
                 out = self.net(img)
-                loss = self.crit(out, lbl)
+                loss, loss_components = torch.tensor(0), []
+                for criterion, output, label in zip(self.crit, out, lbl):
+                    loss_component = criterion(output, label)
+                    loss_components.append(loss_component.item())
+                    loss += loss_component
 
                 # Backward
                 if self.apex_opt_level is not None:
@@ -65,7 +69,7 @@ class Trainer:
                     loss.backward()
 
                 self.optimizer.step()
-                self.logger.add(img, out, lbl, loss.item(),
+                self.logger.add(img, out, lbl, loss_components,
                                 net=self.net, optim=self.optimizer)
                 local_iter += 1
                 self.tot_iter += 1

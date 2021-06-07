@@ -4,32 +4,35 @@ from apex import amp
 
 
 class LoggerBasic:
-    def __init__(self, log_dir, name, saveNetEvery=500, saveAndKeep=False, apex_opt_level=None):
+    def __init__(self, log_dir, name, saveNetEvery=500, saveAndKeep=False, apex_opt_level=None, n_losses=1):
         self.log_dir=log_dir
         self.log_file=os.path.join(self.log_dir,"log_"+name+".txt")
         self.apex_opt_level = apex_opt_level
 
         text_file = open(self.log_file, "w")
         text_file.close()
-        self.loss=0
-        self.count=0
+        self.n_losses = n_losses
+        self.loss = [0] * n_losses
+        self.count = [0] * n_losses
         self.saveNetEvery=saveNetEvery
         self.saveAndKeep=saveAndKeep
         self.epoch=0
 
-    def add(self,img,output,target,l,net=None,optim=None):
-        self.loss+=l
-        self.count+=1
+    def add(self, img, output, target, loss_components, net=None, optim=None):
+        for i, loss_component in enumerate(loss_components):
+            self.loss[i] += loss_component
+            self.count[i] += 1
 
     def logEpoch(self, net=None, optim=None, scheduler=None):
         text_file = open(self.log_file, "a")
-        text_file.write(str(self.loss/self.count))
+        losses = list(map(lambda loss_count: str(loss_count[0] / loss_count[1]), zip(self.loss, self.count)))
+        text_file.write(','.join(losses))
         text_file.write('\n')
         text_file.close()
-        lastLoss=self.loss
-        self.loss=0
-        self.count=0
-        self.epoch+=1
+        lastLoss = sum(self.loss)
+        self.loss = [0] * self.n_losses
+        self.count = [0] * self.n_losses
+        self.epoch += 1
         if self.epoch % self.saveNetEvery == 0:
             if self.saveAndKeep:
                 fname='epoch_'+str(self.epoch)+'.pth'
