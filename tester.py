@@ -23,9 +23,7 @@ class Tester:
             t0=time.time()
             while True:
                 try:
-                    img, lbl = next(self.di)
-                    img = img.to(self.device, non_blocking=True)
-                    lbl = lbl[:, 0].to(self.device, non_blocking=True)
+                    img, lbl = self.preproc(next(self.di))
 
                     out = net(img)
                     self.logger.add(img,out,lbl,0,net=net)
