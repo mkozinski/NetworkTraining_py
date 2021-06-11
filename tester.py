@@ -12,7 +12,10 @@ class Tester:
         #             I use it mostly to copy the data to gpu
         self.dataLoader=test_loader
         self.logger=logger
-        self.preproc=preproc
+        if preproc is None:
+            self.preproc = lambda img_lbl_pair: img_lbl_pair
+        else:
+            self.preproc=preproc
         self.device = device
 
     def test(self, net):
