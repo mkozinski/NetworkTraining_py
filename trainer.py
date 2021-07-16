@@ -1,7 +1,6 @@
 import sys
 import time
 from apex import amp
-import torch
 
 
 class Trainer:
