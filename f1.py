@@ -6,9 +6,10 @@ import numpy as np
 # and the F1 scores
 
 def reverse(t):
-    idx = [i for i in range(t.size(0)-1, -1, -1)]
-    idx = torch.LongTensor(idx)
-    it  = t.index_select(0, idx)
+    #idx = [i for i in range(t.size(0)-1, -1, -1)]
+    #idx = torch.LongTensor(idx)
+    #it  = t.index_select(0, idx)
+    it = torch.flip(t,[0])
     return it
 
 def PRFromHistograms(hPos,hNeg):
