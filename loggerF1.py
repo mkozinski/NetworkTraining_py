@@ -29,6 +29,8 @@ class LoggerF1:
     o,t=self.preproc(output,target)
     pos=o[t==1]
     neg=o[t==0]
+    self.hPos=self.hPos.to(pos)
+    self.hNeg=self.hNeg.to(neg)
     self.hPos+=pos.histc(self.nBins,0,1)
     self.hNeg+=neg.histc(self.nBins,0,1)
 
