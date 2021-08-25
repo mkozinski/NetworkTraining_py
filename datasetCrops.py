@@ -11,13 +11,15 @@ class TestDataset(Dataset):
 # but only retaining non-overlapping ground truth chunks 
 # so that each pixel/voxel is evaluated once
 
-  def __init__(self, img, lbl, cropSz, margSz, augment, ignoreInd=255 ):
+  def __init__(self, img, lbl, cropSz, margSz, augment,
+               ignoreInd=255, output_crop_inds=False):
     self.cropSz=cropSz
     self.margSz=margSz
     self.img=img
     self.lbl=lbl
     self.no_crops=[0] # no_crops[i] = sum no crops in img[k] for all k<i
-    self.ignoreInd=ignoreInd
+    self.ignoreInd=ignoreInd 
+    self.output_crop_inds=output_crop_inds
     self.augment=augment
     for l in self.lbl:
       tot_no_crops=cropRoutines.noCrops(l.shape,self.cropSz,self.margSz,0)+\
@@ -34,8 +36,9 @@ class TestDataset(Dataset):
     img=self.img[ind]
     cropInd=idx-self.no_crops[ind] # index of crop of img[ind]
     cc,vc,_=cropRoutines.cropCoords(cropInd,self.cropSz,self.margSz,lbl.shape,0)
-    cimg,_=crop(img,tuple(cc))
-    clbl=lbl[tuple(cc)].copy()
+    cc=tuple(cc)
+    cimg,_=crop(img,cc)
+    clbl=lbl[cc].copy()
     # use vc to inpaint margins to ignore in lbl
     idx=[]
     for i in range(len(vc)):
@@ -50,6 +53,10 @@ class TestDataset(Dataset):
       # prepare index for next dimensions
       idx.append(slice(0,clbl.shape[i]))
      
+    if self.output_crop_inds:
+      cinds=np.array([[ind.start,ind.stop] for ind in vc])
+      clbl=[clbl,cinds]
+
     return cimg, clbl
     
 
