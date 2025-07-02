@@ -12,7 +12,7 @@ def reverse(t):
 class LoggerF1:
 
   def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
-               nBins=10000,saveBest=False):
+               nBins=10000,saveBest=False,epochsSkipSaving=0):
     self.log_dir=logdir
     self.name=fname
     self.log_file=os.path.join(self.log_dir,"logF1_"+self.name+".txt")
@@ -24,6 +24,8 @@ class LoggerF1:
     self.hNeg=torch.zeros(self.nBins)
     self.bestF1=0
     self.saveBest=saveBest
+    self.epoch=0
+    self.epochsSkipSaving
 
   def add(self,img,output,target,l,net=None,optim=None):
     o,t=self.preproc(output,target)
@@ -35,13 +37,14 @@ class LoggerF1:
     self.hNeg+=neg.histc(self.nBins,0,1)
 
   def logEpoch(self,net=None,optim=None,scheduler=None):
+    self.epoch+=1
     precision,recall=PRFromHistograms(self.hPos,self.hNeg)
     f1s=F1FromPR(precision,recall)
     f=f1s.max()
     text_file=open(self.log_file, "a")
     text_file.write('{}\n'.format(f))
     text_file.close()
-    if self.saveBest and f > self.bestF1:
+    if self.epoch>epochsSkipSaving and self.saveBest and f > self.bestF1:
       self.bestF1=f
       if net:
         torch.save({'state_dict': net.state_dict()},
