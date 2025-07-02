@@ -44,7 +44,7 @@ class LoggerF1:
     text_file=open(self.log_file, "a")
     text_file.write('{}\n'.format(f))
     text_file.close()
-    if self.epoch>epochsSkipSaving and self.saveBest and f > self.bestF1:
+    if self.epoch>self.epochsSkipSaving and self.saveBest and f > self.bestF1:
       self.bestF1=f
       if net:
         torch.save({'state_dict': net.state_dict()},
