@@ -25,7 +25,7 @@ class LoggerF1:
     self.bestF1=0
     self.saveBest=saveBest
     self.epoch=0
-    self.epochsSkipSaving
+    self.epochsSkipSaving=epochsSkipSaving
 
   def add(self,img,output,target,l,net=None,optim=None):
     o,t=self.preproc(output,target)
