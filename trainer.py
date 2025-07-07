@@ -58,7 +58,8 @@ class trainer:
 
   def __init__(self, net, train_loader, optimizer, loss_function, logger, 
                tester, test_every,lr_scheduler=None, lrStepPer='batch', 
-               preprocImgLbl=None, apex_opt_level=None, update_every=1):
+               preprocImgLbl=None, apex_opt_level=None, update_every=1,
+               learningRate=1e-3, batchSize=5, alpha=0.5):
     # net
     # train_loader
     # optimizer
@@ -93,18 +94,26 @@ class trainer:
 #    if self.apex_opt_level is not None:
 #       self.net,self.optimizer=amp.initialize(self.net,self.optimizer,
 #           opt_level=self.apex_opt_level)
+    if learningRate is not None:
+      self.learningRate = learningRate
+      self.batchSize = batchSize
+      self.alpha = alpha
 
-    self.run = wandb.init(
-      entity="phesox",
-      project="maximin_training",
-      config={
-        "learning_rate": 0.001,
-        "architecture": "U-Net",
-        "dataset": "DRIVE",
-        "batch size": 2,
-        "alpha": 0.5      
-      }
-    )
+      self.run = wandb.init(
+        entity="phesox",
+        project="maximin_training",
+        config={
+          "learning_rate": self.learningRate,
+          "architecture": "U-Net",
+          "dataset": "DRIVE",
+          "batch size": self.batchSize,
+          "alpha": self.alpha      
+        }
+      )
+    else:
+      self.learningRate = 0
+      self.batchSize = 0
+      self.alpha = 0
 
   def train(self, numiter):
     self.net.train()
@@ -181,7 +190,7 @@ class trainer:
         if t1-t0>3:
           itertime=(t1-t0)/(self.tot_iter-self.prev_iter)
 
-          bsize_steps = 10
+          bsize_steps = np.ceil(20/self.batchSize)
           numbers = [self.tot_iter%bsize_steps,bsize_steps-1-self.tot_iter%10]
           text = 'Iter: '+str(self.tot_iter)+'\t['+str(numbers[0]*'='+'>'+numbers[1]*'.')+'] '+str(numbers[0])+'/'+str(bsize_steps)+'\tTime/iter: '+str(itertime)
 
