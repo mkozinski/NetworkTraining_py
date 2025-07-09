@@ -59,7 +59,7 @@ class trainer:
   def __init__(self, net, train_loader, optimizer, loss_function, logger, 
                tester, test_every,lr_scheduler=None, lrStepPer='batch', 
                preprocImgLbl=None, apex_opt_level=None, update_every=1,
-               learningRate=1e-3, batchSize=5, alpha=0.5):
+               learningRate=1e-3, batchSize=5, alpha=0.5,sgm=5,a=0.8):
     # net
     # train_loader
     # optimizer
@@ -98,6 +98,8 @@ class trainer:
       self.learningRate = learningRate
       self.batchSize = batchSize
       self.alpha = alpha
+      self.sgm = sgm
+      self.a = a
 
       self.run = wandb.init(
         entity="phesox",
@@ -107,7 +109,9 @@ class trainer:
           "architecture": "U-Net",
           "dataset": "DRIVE",
           "batch size": self.batchSize,
-          "alpha": self.alpha      
+          "alpha": self.alpha,
+          "sgm": self.sgm,
+          "a": self.a
         }
       )
     else:
