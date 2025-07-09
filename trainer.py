@@ -196,7 +196,7 @@ class trainer:
 
           bsize_steps = np.int64(np.ceil(20/self.batchSize))
           numbers = [self.tot_iter%bsize_steps,bsize_steps-1-self.tot_iter%10]
-          text = 'Iter: '+str(self.tot_iter)+'\t['+str(numbers[0]*'='+'>'+numbers[1]*'.')+'] '+str(numbers[0])+'/'+str(bsize_steps)+'\tTime/iter: '+str(itertime)
+          text = 'Iter: '+str(self.tot_iter)+'\t['+str(numbers[0]*'='+'>'+numbers[1]*'.')+'] '+str(numbers[0])+'/'+str(bsize_steps)+'\tTime/iter: '+str(itertime)[:4]+" s"
 
           sys.stdout.write('\r'+text)
 
