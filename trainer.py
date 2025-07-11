@@ -191,7 +191,8 @@ class trainer:
             self.lr_scheduler.step()
 
         t1=time.time()
-        if t1-t0>3:
+        itertime = 2
+        if t1-t0>0.1:
           itertime=(t1-t0)/(self.tot_iter-self.prev_iter)
 
           bsize_steps = np.int64(np.ceil(20/self.batchSize))
