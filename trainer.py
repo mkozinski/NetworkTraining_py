@@ -18,21 +18,22 @@ import cv2
 import matplotlib.pyplot as plt
 
 def compute_betti(patch: np.array):
-  cc = gd.CubicalComplex(top_dimensional_cells=1-patch)
-  cc.compute_persistence()
-  bnum = cc.persistent_betti_numbers(np.inf, -np.inf)
-  return bnum
+    cc = gd.CubicalComplex(top_dimensional_cells=1-patch)
+    cc.compute_persistence()
+    bnum = cc.persistent_betti_numbers(np.inf, -np.inf)[0]
+    del cc
+    return bnum
 
 def betti_error_topo(y_true, y_pred):
-  betti_err = []
-  for b in range(y_pred.shape[0]):
-    for c in range(1, y_pred.shape[1]):
-      betti_true = compute_betti(y_true[b, 0]==c)
-      betti_pred = compute_betti(y_pred[b, c])
-      diff_tmp = np.abs(np.array(betti_true[:-1]) - np.array(betti_pred[:-1]))
-      betti_err.append(diff_tmp)
-
-  return np.array(betti_err) 
+  diff_tmp = 0
+  #  ASSUMES SQUARE IMAGE
+  psize = 64
+  for i in np.random.uniform(0,y_true.shape[0]-psize-1,100):
+     i=int(i)
+     patch_true = 1*y_true[i:i+psize,i:i+psize]
+     patch_pred = 1*y_pred[i:i+psize,i:i+psize]
+     diff_tmp += np.abs(compute_betti(patch_true)-compute_betti(patch_pred))
+  return diff_tmp/100.0 
 
 def betti_number(img_true, pred):
     diags_pred = lower_star_img(pred)[:-1]
@@ -69,8 +70,10 @@ def get_metrics(img_predicted, img_true, img_mask):
     for i in np.random.uniform(0,383,100):
         i = int(i)
         betti_dif += abs(betti_number(img_true[i:i+64,i:i+64], img_predicted[i:i+64,i:i+64]))
+
+    betti_topo = betti_error_topo(img_true, img_predicted)
     
-    return accuracy, recall, dice , betti_dif/100
+    return accuracy, recall, dice , betti_dif/100, betti_topo
 
 class trainer:
 
@@ -200,7 +203,7 @@ class trainer:
         img_mask = maskimg.detach().numpy() 
         img_pred = np.logical_and(img_pred, img_mask)
 
-        accuracy, recall, dice, betti = get_metrics(img_pred, img_true, img_mask)
+        accuracy, recall, dice, betti, betti_topo = get_metrics(img_pred, img_true, img_mask)
         cldice = cldDice(img_pred, img_true)        
 
         local_iter+=1
@@ -223,7 +226,7 @@ class trainer:
           t0=t1
           self.prev_iter=self.tot_iter
         
-        metrics.append([accuracy, recall, dice, betti, cldice,loss.item(),itertime])
+        metrics.append([accuracy, recall, dice, betti, cldice,loss.item(),itertime, betti_topo])
 
 
       except StopIteration:
@@ -238,7 +241,8 @@ class trainer:
                         np.nanmean(metrics2[:,3]),
                         np.nanmean(metrics2[:,4]),
                         np.nanmean(metrics2[:,5]),
-                        np.nanmean(metrics2[:,6])]
+                        np.nanmean(metrics2[:,6]),
+                        np.nanmean(metrics2[:,7])]
         
         self.run.log({
           "acc": mean_metrics[0],
@@ -247,7 +251,8 @@ class trainer:
           "betti": mean_metrics[3],
           "cldice": mean_metrics[4],
           "loss": mean_metrics[5],
-          "itertime": mean_metrics[6]
+          "itertime": mean_metrics[6],
+          "betti (topomortar)": mean_metrics[7]
         })
 
         metrics.clear()
