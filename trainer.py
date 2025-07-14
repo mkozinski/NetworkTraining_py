@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import time
 import wandb
+import gudhi as gd
 
 from sys import path
 path.append("../")
@@ -15,6 +16,23 @@ from ripser import lower_star_img
 
 import cv2
 import matplotlib.pyplot as plt
+
+def compute_betti(patch: np.array):
+  cc = gd.CubicalComplex(top_dimensional_cells=1-patch)
+  cc.compute_persistence()
+  bnum = cc.persistent_betti_numbers(np.inf, -np.inf)
+  return bnum
+
+def betti_error_topo(y_true, y_pred):
+  betti_err = []
+  for b in range(y_pred.shape[0]):
+    for c in range(1, y_pred.shape[1]):
+      betti_true = compute_betti(y_true[b, 0]==c)
+      betti_pred = compute_betti(y_pred[b, c])
+      diff_tmp = np.abs(np.array(betti_true[:-1]) - np.array(betti_pred[:-1]))
+      betti_err.append(diff_tmp)
+
+  return np.array(betti_err) 
 
 def betti_number(img_true, pred):
     diags_pred = lower_star_img(pred)[:-1]
