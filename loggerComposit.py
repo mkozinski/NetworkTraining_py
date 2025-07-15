@@ -7,7 +7,8 @@ class LoggerComposit:
             lgr.add(img,output,target,l,net,optim)
 
     def logEpoch(self,net=None,optim=None,scheduler=None):
-        lastLoss=self.loggers[0].logEpoch(net,optim,scheduler)
-        for k in range(1,len(self.loggers)):
-            self.loggers[k].logEpoch(net,optim,scheduler)
-        return lastLoss
+        values = []
+        for k in range(0,len(self.loggers)):
+            values.append(self.loggers[k].logEpoch(net,optim,scheduler))
+
+        return values

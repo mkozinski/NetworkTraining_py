@@ -11,69 +11,11 @@ import gudhi as gd
 from sys import path
 path.append("../")
 path.append("./")
-from driveMaximin.cl_metric import cldDice
-from ripser import lower_star_img
 
 import cv2
 import matplotlib.pyplot as plt
 
-def compute_betti(patch: np.array):
-    cc = gd.CubicalComplex(top_dimensional_cells=1-patch)
-    cc.compute_persistence()
-    bnum = cc.persistent_betti_numbers(np.inf, -np.inf)[0]
-    del cc
-    return bnum
-
-def betti_error_topo(y_true, y_pred):
-  diff_tmp = 0
-  #  ASSUMES SQUARE IMAGE
-  psize = 64
-  for i in np.random.uniform(0,y_true.shape[0]-psize-1,100):
-     i=int(i)
-     patch_true = 1*y_true[i:i+psize,i:i+psize]
-     patch_pred = 1*y_pred[i:i+psize,i:i+psize]
-     diff_tmp += np.abs(compute_betti(patch_true)-compute_betti(patch_pred))
-  return diff_tmp/100.0 
-
-def betti_number(img_true, pred):
-    diags_pred = lower_star_img(pred)[:-1]
-    diags = lower_star_img(img_true)[:-1]
-    return len(diags_pred) - len(diags)
-
-def get_metrics(img_predicted, img_true, img_mask):
-    '''
-    binary segmented feature maps
-    '''
-    tp = float(np.logical_and(img_mask, np.logical_and(img_true, img_predicted)).sum())
-    fp = float(np.logical_and(img_mask, np.logical_and(1 - img_true, img_predicted)).sum())
-    tn = float(np.logical_and(img_mask, np.logical_and(1 - img_true, 1 - img_predicted)).sum())
-    fn = float(np.logical_and(img_mask, np.logical_and(img_true,  1 - img_predicted)).sum())
-
-
-    if (tp+fp+tn+fn) != 0:
-      accuracy = (tp + tn) / (tp + fp + tn + fn)
-    else:
-      accuracy = float('NaN')
-
-    if (tp+fn) != 0:
-      recall = tp / (tp + fn)
-    else:
-      recall = float('NaN')
-    
-    if (2*tp+fp+fn) != 0:
-      dice = 2 * tp / (2 * tp + fp + fn)
-    else:
-      dice = float('NaN')
-
-    betti_dif = 0
-    
-    for i in np.random.uniform(0,383,100):
-        i = int(i)
-        betti_dif += abs(betti_number(img_true[i:i+64,i:i+64], img_predicted[i:i+64,i:i+64]))
-
-    betti_topo = betti_error_topo(img_true, img_predicted)
-    
-    return accuracy, recall, dice , betti_dif/100, betti_topo
+from NetworkTraining_py.metrics import get_metrics
 
 class trainer:
 
@@ -144,7 +86,7 @@ class trainer:
     self.net.train()
     local_iter=0
     t0=time.time()
-    metrics = []
+    itertime_array = []
     while local_iter<numiter:
       try:
         img, lbl=next(self.di)
@@ -173,39 +115,7 @@ class trainer:
         with torch.no_grad():
           self.logger.add(img,out,lbl,loss.item(),
                           net=self.net,optim=self.optimizer)
-          o=out.unsqueeze(0).cuda()
-          e=torch.exp(o)
-          p=e/(1+e)
-
-
-        # let's  compute all the metrics for this iteration
-        lbimg=(lbl[0][0]*255).cpu()
-        primg=(p[0][0][0]*255).cpu() 
-        maskimg=(lbl[1][0]*255).cpu()
-
-        #print("lb max min", lbl[0][0].max(), lbl[0][0].min())
-        #print("lbimg max min", lbimg.max(), lbimg.min())
-
-        pr = (255*(primg<150)).detach().numpy().astype(np.uint16)
-        lb = lbimg.detach().numpy().astype(np.uint16)
-
-        #print("lb max min", lb.max(), lb.min())
-        #print("lbimg max min", lbimg.max(), lbimg.min())
-
-        #cv2.imshow("test", torch.cat([lbl[0][0].cpu(),p[0][0][0].cpu()],dim=1).numpy())
-        #cv2.imshow("lb", lb)
-        #cv2.imshow("pr", pr.astype(np.uint16))
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
-
-        img_pred = (pr > 250)
-        img_true = (lb != 0)
-        img_mask = maskimg.detach().numpy() 
-        img_pred = np.logical_and(img_pred, img_mask)
-
-        accuracy, recall, dice, betti, betti_topo = get_metrics(img_pred, img_true, img_mask)
-        cldice = cldDice(img_pred, img_true)        
-
+        
         local_iter+=1
         self.tot_iter+=1
         if self.lr_scheduler and self.lrStepPer=='batch':
@@ -226,38 +136,28 @@ class trainer:
           t0=t1
           self.prev_iter=self.tot_iter
         
-        metrics.append([accuracy, recall, dice, betti, cldice,loss.item(),itertime, betti_topo])
+        itertime_array.append(itertime)
 
 
       except StopIteration:
 
-        lastLoss=self.logger.logEpoch(net=self.net,optim=self.optimizer,
+        lastLoss, metrics=self.logger.logEpoch(net=self.net,optim=self.optimizer,
             scheduler=self.lr_scheduler)
         
-        metrics2 = np.array(metrics)
-        mean_metrics = [np.nanmean(metrics2[:,0]),
-                        np.nanmean(metrics2[:,1]),
-                        np.nanmean(metrics2[:,2]),
-                        np.nanmean(metrics2[:,3]),
-                        np.nanmean(metrics2[:,4]),
-                        np.nanmean(metrics2[:,5]),
-                        np.nanmean(metrics2[:,6]),
-                        np.nanmean(metrics2[:,7])]
+        iteravg = np.mean(itertime_array)
         
         self.run.log({
-          "acc": mean_metrics[0],
-          "recall": mean_metrics[1],
-          "dice": mean_metrics[2],
-          "betti": mean_metrics[3],
-          "cldice": mean_metrics[4],
-          "loss": mean_metrics[5],
-          "itertime": mean_metrics[6],
-          "betti (topomortar)": mean_metrics[7]
+          "acc": metrics[0],
+          "recall": metrics[1],
+          "dice": metrics[2],
+          "cldice": metrics[3],
+          "betti": metrics[4],
+          "betti (topomortar)": metrics[5],
+          "loss": metrics[6],
+          "itertime": iteravg
         })
 
-        metrics.clear()
-        
-
+        itertime_array.clear()
 
         self.epoch+=1
         self.di=iter(self.dataLoader)
@@ -265,8 +165,5 @@ class trainer:
           self.tester.test(self.net)
         if self.lr_scheduler and self.lrStepPer=='epoch':
           self.lr_scheduler.step(lastLoss)
-
-
-        
 
         print("\nEpoch "+str(self.epoch)+" :")
