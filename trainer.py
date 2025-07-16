@@ -70,7 +70,7 @@ class trainer:
         config={
           "learning_rate": self.learningRate,
           "architecture": "U-Net",
-          "dataset": "DRIVE",
+          "dataset": "TopoMortar",
           "batch size": self.batchSize,
           "alpha": self.alpha,
           "sgm": self.sgm,
@@ -126,7 +126,7 @@ class trainer:
         if t1-t0>0.1:
           itertime=(t1-t0)/(self.tot_iter-self.prev_iter)
 
-          bsize_steps = np.int64(np.ceil(20/self.batchSize))
+          bsize_steps = np.int64(np.ceil(350/self.batchSize))
           numbers = [self.tot_iter%bsize_steps,bsize_steps-1-self.tot_iter%10]
           text = 'Iter: '+str(self.tot_iter)+'\t['+str(numbers[0]*'='+'>'+numbers[1]*'.')+'] '+str(numbers[0])+'/'+str(bsize_steps)+'\tTime/iter: '+str(itertime)[:4]+" s"
 
