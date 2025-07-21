@@ -55,7 +55,6 @@ class _LoggerMetrics:
 
     current_time=time()
     epoch_time=current_time-self.previous_time
-    self.previous_time=current_time
 
     mean_metrics = np.nanmean(self.metrics, 0).tolist()
     mean_metrics.append(epoch_time)
@@ -78,6 +77,8 @@ class _LoggerMetrics:
         torch.save({'state_dict': optim.state_dict()},
                     os.path.join(self.log_dir, 
                     'optim_'+self.name+'_bestBetti.pth'))
+
+    self.previous_time=time()
 
     return mean_metrics
 
