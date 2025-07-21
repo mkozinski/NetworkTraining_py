@@ -1,4 +1,5 @@
 import os
+from time import time
 import torch
 import numpy as np
 from NetworkTraining_py.metrics import get_metrics
@@ -15,6 +16,8 @@ class _LoggerMetrics:
     self.epochsSkipSaving=epochsSkipSaving
 
     self.metrics = []
+
+    self.previous_time=time()
 
   def add(self,img,output,target,l,net=None,optim=None):
     o=output.unsqueeze(0).cuda()
@@ -40,6 +43,10 @@ class _LoggerMetrics:
   def logEpoch(self,net=None,optim=None,scheduler=None):
     self.epoch+=1
 
+    current_time=time()
+    epoch_time=current_time-self.previous_time
+    self.previous_time=current_time
+
     mean_metrics = np.nanmean(self.metrics, 0).tolist()
     
     self.metrics.clear()
@@ -51,6 +58,7 @@ class _LoggerMetrics:
               "betti"     :mean_metrics[4],
               "betti_topo":mean_metrics[5],
               "l"         :mean_metrics[6],
+              "epoch_time":epoch_time,
               }
 
     self.writer.write(log_dict)
@@ -75,5 +83,6 @@ class LoggerMetrics(_LoggerMetrics):
   def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
                saveBest=False,epochsSkipSaving=0):
 
-    writer=WriterText(logdir,fname,["accuracy","recall","dice","cldice","betti","betti_topo","l"])
+    param_list=["accuracy","recall","dice","cldice","betti","betti_topo","l","epoch_time"]
+    writer=WriterText(logdir,fname,param_list)
     super(LoggerMetrics,self).__init__(writer,preproc,saveBest,epochsSkipSaving)
