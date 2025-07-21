@@ -11,15 +11,10 @@ def compute_betti(patch: np.array):
     return bnum
 
 def betti_error_topo(y_true, y_pred):
-  diff_tmp = 0
-  #  ASSUMES SQUARE IMAGE
-  psize = 64
-  for i in np.random.uniform(0,y_true.shape[0]-psize-1,100):
-     i=int(i)
-     patch_true = 1*y_true[i:i+psize,i:i+psize]
-     patch_pred = 1*y_pred[i:i+psize,i:i+psize]
-     diff_tmp += np.abs(compute_betti(patch_true)-compute_betti(patch_pred))
-  return diff_tmp/100.0 
+  betti_true = compute_betti(y_true)
+  betti_pred = compute_betti(y_pred)
+
+  return np.abs(betti_true-betti_pred)
 
 def betti_number(img_true, pred):
     diags_pred = lower_star_img(pred)[:-1]
@@ -51,13 +46,9 @@ def get_metrics(img_predicted, img_true, img_mask):
     else:
       dice = float('NaN')
 
-    betti_dif = 0
-    
-    for i in np.random.uniform(0,383,100):
-        i = int(i)
-        betti_dif += abs(betti_number(img_true[i:i+64,i:i+64], img_predicted[i:i+64,i:i+64]))
-
     betti_topo = betti_error_topo(img_true, img_predicted)
-    cldice = cldDice(img_predicted, img_true)    
+    cldice = cldDice(img_predicted, img_true)   
+
+    betti_diff = abs(betti_number(img_true, img_predicted)) 
     
-    return accuracy, recall, dice , betti_dif/100, betti_topo, cldice
+    return accuracy, recall, dice , betti_diff, betti_topo, cldice

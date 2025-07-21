@@ -11,7 +11,7 @@ class LoggerMetrics:
     self.name=fname
     self.log_file=os.path.join(self.log_dir,"logMetrics_"+self.name+".txt")
     text_file = open(self.log_file, "w")
-    text_file.write("accuracy,recall,dice,cldice,betti,betti_topo,loss")
+    text_file.write("accuracy,recall,dice,cldice,betti,betti_topo,loss\n")
     text_file.close()
     self.preproc=preproc
     self.nBins=nBins
@@ -52,9 +52,10 @@ class LoggerMetrics:
     
     self.metrics.clear()
     
-    buffer = ','.join(str(x) for x in mean_metrics)
+    buffer = ','.join(str(x)[:6] for x in mean_metrics)
     text_file=open(self.log_file, "a")
     text_file.write(buffer)
+    text_file.write("\n")
     text_file.close()
 
     b = mean_metrics[4]
