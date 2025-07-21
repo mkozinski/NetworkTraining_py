@@ -1,17 +1,21 @@
 import os
 import torch
+from .writer_text import WriterText
 
 class LoggerGeneric:
-    def __init__(self, log_dir, name, compute_logged_val, 
-                 saveMin=False, saveMax=False):
+
+    def __init__(self, log_dir, name, param_name, compute_logged_val, 
+                 saveMin=False, saveMax=False,
+                 writer=None):
+
         self.log_dir=log_dir
-        self.log_file=os.path.join(self.log_dir,"log_"+name+".txt")
         self.name=name
+
+        self.writer=writer
+        self.param_name=param_name
 
         self.compute_logged_val=compute_logged_val
 
-        text_file = open(self.log_file, "w")
-        text_file.close()
         self.val=0
         self.count=0
         self.epoch=0
@@ -20,15 +24,19 @@ class LoggerGeneric:
         self.saveMin=saveMin
         self.saveMax=saveMax
 
+        self.param_list=[param_name,]
+
+        if self.writer is None:
+            self.writer=WriterText(self.log_dir,"log_"+name+".txt",self.param_list)
+
     def add(self,img,output,target,l,net=None,optim=None):
         self.val+=self.compute_logged_val(img,output,target,l,net,optim)
         self.count+=1
 
     def logEpoch(self,net=None,optim=None,scheduler=None):
-        text_file = open(self.log_file, "a")
-        text_file.write(str(self.val/self.count))
-        text_file.write('\n')
-        text_file.close()
+
+        self.writer.write({self.param_name:self.val/self.count,})
+
         lastVal=self.val
         self.val=0
         self.count=0

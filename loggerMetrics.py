@@ -5,17 +5,17 @@ import numpy as np
 from NetworkTraining_py.metrics import get_metrics
 from NetworkTraining_py.writer_text import WriterText
 
-param_list=["accuracy","recall","dice","cldice","betti","betti_topo","l","epoch_time"]
 
-def log_dict_from_metrics(metrics):
+def log_dict_from_metrics(metrics,param_list):
     log_dict={param:metrics[i] for i,param in enumerate(param_list)}
     assert set(param_list)==set(log_dict.keys())
     return log_dict
 
-class _LoggerMetrics:
+class LoggerMetrics:
+  param_list=["accuracy","recall","dice","cldice","betti","betti_topo","l","epoch_time"]
 
-  def __init__(self,writer,save_dir,name,preproc=lambda o,t: (o,t),
-               saveBest=False,epochsSkipSaving=0):
+  def __init__(self,save_dir,name,preproc=lambda o,t: (o,t),
+               saveBest=False,epochsSkipSaving=0,writer=None):
     self.writer=writer
     self.log_dir=save_dir
     self.name   =name
@@ -24,6 +24,9 @@ class _LoggerMetrics:
     self.saveBest=saveBest
     self.epoch=0
     self.epochsSkipSaving=epochsSkipSaving
+
+    if self.writer is None:
+        self.writer=WriterText(self.log_dir,"log_"+name+"Metrics.txt",self.param_list)
 
     self.metrics = []
 
@@ -61,7 +64,7 @@ class _LoggerMetrics:
     
     self.metrics.clear()
     
-    log_dict=log_dict_from_metrics(mean_metrics)
+    log_dict=log_dict_from_metrics(mean_metrics,self.param_list)
 
     self.writer.write(log_dict)
 
@@ -82,10 +85,3 @@ class _LoggerMetrics:
 
     return mean_metrics
 
-class LoggerMetrics(_LoggerMetrics):
-
-    def __init__(self,logdir,name,preproc=lambda o,t: (o,t),
-                 saveBest=False,epochsSkipSaving=0):
-
-        writer=WriterText(logdir,name+"Metrics",param_list)
-        super(LoggerMetrics,self).__init__(writer,log_dir,name,preproc,saveBest,epochsSkipSaving)

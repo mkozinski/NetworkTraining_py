@@ -9,7 +9,7 @@ class WriterText:
 
         self.params=params 
         self.log_dir=log_dir
-        self.log_file_name=path.join(self.log_dir,"log_"+name+".txt")
+        self.log_file_name=path.join(self.log_dir,name)
 
         text_file = open(self.log_file_name, "w")
         for p in params:

@@ -1,28 +1,36 @@
 import os
 import torch
 
-class LoggerBasic:
-    def __init__(self, log_dir, name, saveNetEvery=500, saveAndKeep=False):
-        self.log_dir=log_dir
-        self.log_file=os.path.join(self.log_dir,"log_"+name+".txt")
+from .writer_text import WriterText
 
-        text_file = open(self.log_file, "w")
-        text_file.close()
+class LoggerBasic:
+
+    param_list=["loss",]
+
+    def __init__(self, log_dir, name, saveNetEvery=500, saveAndKeep=False,
+        writer=None):
+
+        self.log_dir=log_dir
+        
+        self.writer=writer
+
         self.loss=0
         self.count=0
         self.saveNetEvery=saveNetEvery
         self.saveAndKeep=saveAndKeep
         self.epoch=0
 
+        if self.writer is None:
+            self.writer=WriterText(self.log_dir,"log_"+name+"Basic.txt",self.param_list)
+
     def add(self,img,output,target,l,net=None,optim=None):
         self.loss+=l
         self.count+=1
 
     def logEpoch(self,net=None,optim=None,scheduler=None):
-        text_file = open(self.log_file, "a")
-        text_file.write(str(self.loss/self.count))
-        text_file.write('\n')
-        text_file.close()
+
+        self.writer.write({"loss":self.loss/self.count})
+
         lastLoss=self.loss
         self.loss=0
         self.count=0
