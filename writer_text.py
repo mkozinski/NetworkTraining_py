@@ -1,4 +1,4 @@
-
+from os import path
 import wandb
 import numpy as np
 import torch as th
@@ -9,7 +9,7 @@ class WriterText:
 
         self.params=params 
         self.log_dir=log_dir
-        self.log_file_name=os.path.join(self.log_dir,"log_"+name+".txt")
+        self.log_file_name=path.join(self.log_dir,"log_"+name+".txt")
 
         text_file = open(self.log_file_name, "w")
         for p in params:
@@ -18,7 +18,7 @@ class WriterText:
         text_file.write('\n')
         text_file.close()
 
-    def write(log_dict):
+    def write(self,log_dict):
 
         keys=set(log_dict.keys())
         params=set(self.params)

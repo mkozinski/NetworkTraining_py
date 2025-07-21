@@ -3,12 +3,22 @@ from time import time
 import torch
 import numpy as np
 from NetworkTraining_py.metrics import get_metrics
+from NetworkTraining_py.writer_text import WriterText
+
+param_list=["accuracy","recall","dice","cldice","betti","betti_topo","l","epoch_time"]
+
+def log_dict_from_metrics(metrics):
+    log_dict={param:metrics[i] for i,param in enumerate(param_list)}
+    assert set(param_list)==set(log_dict.keys())
+    return log_dict
 
 class _LoggerMetrics:
 
-  def __init__(self,writer,preproc=lambda o,t: (o,t),
+  def __init__(self,writer,save_dir,name,preproc=lambda o,t: (o,t),
                saveBest=False,epochsSkipSaving=0):
     self.writer=writer
+    self.log_dir=save_dir
+    self.name   =name
     self.preproc=preproc
     self.bestBetti=1000000
     self.saveBest=saveBest
@@ -48,18 +58,11 @@ class _LoggerMetrics:
     self.previous_time=current_time
 
     mean_metrics = np.nanmean(self.metrics, 0).tolist()
+    mean_metrics.append(epoch_time)
     
     self.metrics.clear()
     
-    log_dict={"accuracy"  :mean_metrics[0],
-              "recall"    :mean_metrics[1],
-              "dice"      :mean_metrics[2],
-              "cldice"    :mean_metrics[3],
-              "betti"     :mean_metrics[4],
-              "betti_topo":mean_metrics[5],
-              "l"         :mean_metrics[6],
-              "epoch_time":epoch_time,
-              }
+    log_dict=log_dict_from_metrics(mean_metrics)
 
     self.writer.write(log_dict)
 
@@ -80,9 +83,8 @@ class _LoggerMetrics:
 
 class LoggerMetrics(_LoggerMetrics):
 
-  def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
-               saveBest=False,epochsSkipSaving=0):
+    def __init__(self,logdir,name,preproc=lambda o,t: (o,t),
+                 saveBest=False,epochsSkipSaving=0):
 
-    param_list=["accuracy","recall","dice","cldice","betti","betti_topo","l","epoch_time"]
-    writer=WriterText(logdir,fname,param_list)
-    super(LoggerMetrics,self).__init__(writer,preproc,saveBest,epochsSkipSaving)
+        writer=WriterText(logdir,name+"Metrics",param_list)
+        super(LoggerMetrics,self).__init__(writer,log_dir,name,preproc,saveBest,epochsSkipSaving)

@@ -2,7 +2,7 @@ import wandb
 import numpy as np
 import torch as th
 
-class WriterWANDB:
+class WriterWandB:
 
     def __init__(self,entity,project,config):
         self.wandb_run=wandb.init(
@@ -11,5 +11,5 @@ class WriterWANDB:
             config=config
         )
 
-    def write(log_dict):
-        self.run.log(log_dict)
+    def write(self,log_dict):
+        self.wandb_run.log(log_dict)
