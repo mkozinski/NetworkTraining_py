@@ -3,21 +3,13 @@ import torch
 import numpy as np
 from NetworkTraining_py.metrics import get_metrics
 
-class LoggerMetrics:
+class _LoggerMetrics:
 
-  def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
-               nBins=10000,saveBest=False,epochsSkipSaving=0):
-    self.log_dir=logdir
-    self.name=fname
-    self.log_file=os.path.join(self.log_dir,"logMetrics_"+self.name+".txt")
-    text_file = open(self.log_file, "w")
-    text_file.write("accuracy,recall,dice,cldice,betti,betti_topo,loss\n")
-    text_file.close()
+  def __init__(self,writer,preproc=lambda o,t: (o,t),
+               saveBest=False,epochsSkipSaving=0):
+    self.writer=writer
     self.preproc=preproc
-    self.nBins=nBins
-    self.hPos=torch.zeros(self.nBins)
-    self.hNeg=torch.zeros(self.nBins)
-    self.bestBetti=10
+    self.bestBetti=1000000
     self.saveBest=saveBest
     self.epoch=0
     self.epochsSkipSaving=epochsSkipSaving
@@ -52,11 +44,16 @@ class LoggerMetrics:
     
     self.metrics.clear()
     
-    buffer = ','.join(str(x)[:6] for x in mean_metrics)
-    text_file=open(self.log_file, "a")
-    text_file.write(buffer)
-    text_file.write("\n")
-    text_file.close()
+    log_dict={"accuracy"  :mean_metrics[0],
+              "recall"    :mean_metrics[1],
+              "dice"      :mean_metrics[2],
+              "cldice"    :mean_metrics[3],
+              "betti"     :mean_metrics[4],
+              "betti_topo":mean_metrics[5],
+              "l"         :mean_metrics[6],
+              }
+
+    self.writer.write(log_dict)
 
     b = mean_metrics[4]
 
@@ -72,3 +69,11 @@ class LoggerMetrics:
                     'optim_'+self.name+'_bestBetti.pth'))
 
     return mean_metrics
+
+class LoggerMetrics(_LoggerMetrics):
+
+  def __init__(self,logdir,fname,preproc=lambda o,t: (o,t),
+               saveBest=False,epochsSkipSaving=0):
+
+    writer=WriterText(logdir,fname,["accuracy","recall","dice","cldice","betti","betti_topo","l"])
+    super(LoggerMetrics,self).__init__(writer,preproc,saveBest,epochsSkipSaving)
