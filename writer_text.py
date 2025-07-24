@@ -20,12 +20,10 @@ class WriterText:
 
     def write(self,log_dict):
 
-        keys=set(log_dict.keys())
-        params=set(self.params)
-        assert keys<=params, "the log_dict keys differ from self.params"
+        assert set(log_dict.keys())<=set(self.params), "the log_dict keys differ from self.params"
 
         text_file = open(self.log_file_name, "a")
-        for p in params:
+        for p in self.params:
             text_file.write(str(log_dict[p]))
             text_file.write('\t')
         text_file.write('\n')
