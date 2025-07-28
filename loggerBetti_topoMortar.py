@@ -51,20 +51,20 @@ class LoggerBettiTM:
         if net:
           torch.save({'state_dict': net.state_dict()},
                       os.path.join(self.log_dir, 
-                      'net_'+self.name+'_bestBE0.pth'))
+                      'net_'+self.name+'_bestTMBE0.pth'))
         if optim:
           torch.save({'state_dict': optim.state_dict()},
                       os.path.join(self.log_dir, 
-                      'optim_'+self.name+'_bestBE0.pth'))
+                      'optim_'+self.name+'_bestTMBE0.pth'))
 
       if berr1<self.bestBE1: 
         self.bestBE1=berr1
         if net:
           torch.save({'state_dict': net.state_dict()},
                       os.path.join(self.log_dir, 
-                      'net_'+self.name+'_bestBE1.pth'))
+                      'net_'+self.name+'_bestTMBE1.pth'))
         if optim:
           torch.save({'state_dict': optim.state_dict()},
                       os.path.join(self.log_dir, 
-                      'optim_'+self.name+'_bestBE1.pth'))
+                      'optim_'+self.name+'_bestTMBE1.pth'))
 
