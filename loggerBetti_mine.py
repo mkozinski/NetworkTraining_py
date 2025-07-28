@@ -66,9 +66,9 @@ class LoggerBettiMine:
         else:
           return currentParam
 
-    self.bestBMean0=saveBestParam(be0mean,self.bestBMean0,"BE0"   ,net,optim)
-    self.bestBMean1=saveBestParam(be1mean,self.bestBMean1,"BE1"   ,net,optim)
-    self.bestBMin0 =saveBestParam(be0min, self.bestBMin0, "BEMin0",net,optim)
-    self.bestBMin1 =saveBestParam(be1min, self.bestBMin1, "BEMin1",net,optim)
+    self.bestBMean0=saveBestParam(be0mean,self.bestBMean0,"BEMean0",net,optim)
+    self.bestBMean1=saveBestParam(be1mean,self.bestBMean1,"BEMean1",net,optim)
+    self.bestBMin0 =saveBestParam(be0min, self.bestBMin0, "BEMin0" ,net,optim)
+    self.bestBMin1 =saveBestParam(be1min, self.bestBMin1, "BEMin1" ,net,optim)
 
 
