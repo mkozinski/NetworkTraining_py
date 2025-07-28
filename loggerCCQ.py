@@ -52,9 +52,9 @@ class LoggerCCQ:
     completeness,correctness=cpl[qalind],cor[qalind]
 
     self.writer.write(
-        {"completeness":completeness,
-         "correctbess" :correctness,
-         "quality"     :quality})
+        {"completeness":completeness.item(),
+         "correctness" :correctness.item(),
+         "quality"     :quality.item()})
 
     if self.saveBest and quality > self.bestQ:
       self.bestQ=quality
