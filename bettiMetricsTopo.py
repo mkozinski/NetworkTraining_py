@@ -1,4 +1,5 @@
 from typing import List 
+import itertools
 from monai.metrics import CumulativeIterationMetric
 from monai.utils.enums import MetricReduction
 import gudhi as gd
